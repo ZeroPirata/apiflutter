@@ -56,6 +56,39 @@ class _HomeUserState extends State<HomeUser> {
     }
   }
 
+  TextEditingController controllerName = TextEditingController(text: "Email");
+  TextEditingController controllerEmail = TextEditingController(text: "Nome");
+  String alert = "";
+
+  Future<void> _createUser(String name, String email) async {
+    Map<String, dynamic> data = {
+      "name": name,
+      "email": email,
+    };
+    try {
+      final response = await http.post(
+          Uri.parse(
+            'https://jsonplaceholder.typicode.com/users',
+          ),
+          headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(data));
+      if (response.statusCode == 201) {
+        setState(() {
+          alert = "Usuario cadastrado com as informações: $data";
+        });
+      } else {
+        setState(() {
+          alert = "Erro ao cadastrar novo usuario.";
+        });
+      }
+    } catch (error) {
+      // ignore: avoid_print
+      print(error);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,7 +99,43 @@ class _HomeUserState extends State<HomeUser> {
       body: Center(
         child: Column(
           children: <Widget>[
-            
+            Container(
+              width: 600,
+              margin: const EdgeInsets.only(left: 18.0),
+              child: TextField(
+                controller: controllerName,
+              ),
+            ),
+            Container(
+              width: 600,
+              margin: const EdgeInsets.only(left: 18.0),
+              child: TextField(
+                controller: controllerEmail,
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.all(18.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  _createUser(controllerName.text, controllerEmail.text)
+                      .then((value) => showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                                title: const Text('Criação de usuario'),
+                                content: Text(alert),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, 'Cancel'),
+                                    child: const Text('Cancel'),
+                                  ),
+                                ],
+                              )));
+                  ;
+                },
+                child: const Text('Novo usuario'),
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
