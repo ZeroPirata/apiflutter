@@ -35,26 +35,33 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
       "name": name,
       "email": email,
     };
-    try {
-      final response = await http.put(
-          Uri.parse('https://jsonplaceholder.typicode.com/users/$userId'),
-          headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(data));
-      if (response.statusCode == 200) {
-        setState(() {
-          alert = "Usuario alterado para: $data";
-        });
-        openEditUser();
-      } else {
-        setState(() {
-          alert = "Erro ao alterar o usaurio";
-        });
+
+    if (name == "" || email == "") {
+      setState(() {
+        alert = "Por favor, preencha os campos obrigatórios.";
+      });
+    } else {
+      try {
+        final response = await http.put(
+            Uri.parse('https://jsonplaceholder.typicode.com/users/$userId'),
+            headers: {
+              'Content-type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(data));
+        if (response.statusCode == 200) {
+          setState(() {
+            alert = "Usuário alterado para: $data.";
+          });
+          openEditUser();
+        } else {
+          setState(() {
+            alert = "Erro ao alterar o usuário.";
+          });
+        }
+      } catch (e) {
+        // ignore: avoid_print
+        print(e);
       }
-    } catch (e) {
-      // ignore: avoid_print
-      print(e);
     }
   }
 
@@ -66,11 +73,11 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
           Uri.parse('https://jsonplaceholder.typicode.com/users/$userId'));
       if (response.statusCode == 200) {
         setState(() {
-          alert = "Usuario $userName foi deleteado com sucesso.";
+          alert = "Usuário $userName foi deleteado com sucesso.";
         });
       } else {
         setState(() {
-          alert = "Algo deu errado ao tentar deletar o usuario $userName";
+          alert = "Algo deu errado ao tentar deletar o usuário $userName.";
         });
       }
     } catch (error) {
@@ -99,23 +106,44 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25.0),
+                          side: BorderSide(
+                            color: Colors.deepPurple, // Cor da borda
+                            width: 0.5, // Largura da borda
+                          ),
+                        ),
+                      ),
                       onPressed: () {
                         openEditUser();
                       },
                       child: const Text('Editar'),
                     ),
+                    const SizedBox(
+                      width: 10,
+                    ),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25.0),
+                          side: BorderSide(
+                            color: Colors.deepPurple, // Cor da borda
+                            width: 0.5, // Largura da borda
+                          ),
+                        ),
+                      ),
                       onPressed: () {
                         _deleteData(user).then((value) => showDialog<String>(
                             context: context,
                             builder: (BuildContext context) => AlertDialog(
-                                  title: const Text('Deleção de usaurio'),
+                                  title: const Text('Usuário deletado!'),
                                   content: Text(alert),
                                   actions: <Widget>[
                                     TextButton(
                                       onPressed: () =>
-                                          Navigator.pop(context, 'Cancel'),
-                                      child: const Text('Cancel'),
+                                          Navigator.pop(context, 'Cancelar'),
+                                      child: const Text('Cancelar'),
                                     ),
                                   ],
                                 )));
@@ -135,6 +163,15 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                         margin: const EdgeInsets.only(left: 18.0),
                         child: TextField(
                           controller: controllerName,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            hintText: 'Entre com o nome a ser atualizado',
+                            prefixIcon: Icon(Icons.account_circle_rounded,
+                                color: Colors.deepPurple),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.deepPurple),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -147,6 +184,15 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                         width: 600,
                         child: TextField(
                           controller: controllerEmail,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: 'Entre com o email a ser atualizado',
+                            prefixIcon:
+                                Icon(Icons.email, color: Colors.deepPurple),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.deepPurple),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -156,6 +202,15 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                       Container(
                         margin: const EdgeInsets.all(18.0),
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              side: BorderSide(
+                                color: Colors.deepPurple, // Cor da borda
+                                width: 0.5, // Largura da borda
+                              ),
+                            ),
+                          ),
                           onPressed: () {
                             _editarUser(user, controllerName.text,
                                     controllerEmail.text)
@@ -163,14 +218,18 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                                     context: context,
                                     builder: (BuildContext context) =>
                                         AlertDialog(
-                                          title:
-                                              const Text('Edição do usuario'),
+                                          title: (controllerName.text.isEmpty ||
+                                                  controllerEmail.text.isEmpty)
+                                              ? const Text(
+                                                  'Campos obrigatórios vazios')
+                                              : const Text(
+                                                  'Usuário atualizado!'),
                                           content: Text(alert),
                                           actions: <Widget>[
                                             TextButton(
                                               onPressed: () => Navigator.pop(
-                                                  context, 'Cancel'),
-                                              child: const Text('Cancel'),
+                                                  context, 'Cancelar'),
+                                              child: const Text('Cancelar'),
                                             ),
                                           ],
                                         )));
@@ -178,9 +237,21 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
                           child: const Text('Salvar'),
                         ),
                       ),
+                      const SizedBox(
+                        width: 10,
+                      ),
                       Container(
                         margin: const EdgeInsets.all(18.0),
                         child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              side: BorderSide(
+                                color: Colors.deepPurple, // Cor da borda
+                                width: 0.5, // Largura da borda
+                              ),
+                            ),
+                          ),
                           onPressed: () {
                             openEditUser();
                           },
@@ -196,5 +267,3 @@ class _RenderUserComponentState extends State<RenderUserComponent> {
     );
   }
 }
-/*                 edit ? Text(user['name']) : const Text(""),
- */

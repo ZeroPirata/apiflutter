@@ -14,11 +14,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      darkTheme: ThemeData.dark(
+        //colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const HomeUser(title: 'Duo'),
+      home: const HomeUser(title: 'GM Duo'),
     );
   }
 }
@@ -56,8 +56,8 @@ class _HomeUserState extends State<HomeUser> {
     }
   }
 
-  TextEditingController controllerName = TextEditingController(text: "Email");
-  TextEditingController controllerEmail = TextEditingController(text: "Nome");
+  TextEditingController controllerName = TextEditingController(text: "");
+  TextEditingController controllerEmail = TextEditingController(text: "");
   String alert = "";
 
   Future<void> _createUser(String name, String email) async {
@@ -65,27 +65,34 @@ class _HomeUserState extends State<HomeUser> {
       "name": name,
       "email": email,
     };
-    try {
-      final response = await http.post(
-          Uri.parse(
-            'https://jsonplaceholder.typicode.com/users',
-          ),
-          headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-          },
-          body: jsonEncode(data));
-      if (response.statusCode == 201) {
-        setState(() {
-          alert = "Usuario cadastrado com as informações: $data";
-        });
-      } else {
-        setState(() {
-          alert = "Erro ao cadastrar novo usuario.";
-        });
+
+    if (controllerName.text.isEmpty || controllerEmail.text.isEmpty) {
+      setState(() {
+        alert = "Por favor, insira os dados obrigatórios.";
+      });
+    } else {
+      try {
+        final response = await http.post(
+            Uri.parse(
+              'https://jsonplaceholder.typicode.com/users',
+            ),
+            headers: {
+              'Content-type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(data));
+        if (response.statusCode == 201) {
+          setState(() {
+            alert = "Usuário cadastrado com as informações: $data.";
+          });
+        } else {
+          setState(() {
+            alert = "Erro ao cadastrar novo usuário.";
+          });
+        }
+      } catch (error) {
+        // ignore: avoid_print
+        print(error);
       }
-    } catch (error) {
-      // ignore: avoid_print
-      print(error);
     }
   }
 
@@ -99,41 +106,77 @@ class _HomeUserState extends State<HomeUser> {
       body: Center(
         child: Column(
           children: <Widget>[
+            const SizedBox(
+              height: 16.0,
+            ),
             Container(
               width: 600,
               margin: const EdgeInsets.only(left: 18.0),
               child: TextField(
                 controller: controllerName,
+                keyboardType: TextInputType.text,
+                decoration: const InputDecoration(
+                  hintText: 'Entre com o nome',
+                  prefixIcon: Icon(Icons.account_circle_rounded,
+                      color: Colors.deepPurple),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.deepPurple),
+                  ),
+                ),
               ),
+            ),
+            const SizedBox(
+              height: 16.0,
             ),
             Container(
               width: 600,
               margin: const EdgeInsets.only(left: 18.0),
               child: TextField(
                 controller: controllerEmail,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  hintText: 'Entre com o email',
+                  prefixIcon: Icon(Icons.email, color: Colors.deepPurple),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.deepPurple),
+                  ),
+                ),
               ),
             ),
             Container(
               margin: const EdgeInsets.all(18.0),
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  fixedSize: Size(150, 30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25.0),
+                    side: BorderSide(
+                      color: Colors.deepPurple, // Cor da borda
+                      width: 0.5, // Largura da borda
+                    ),
+                  ),
+                ),
                 onPressed: () {
                   _createUser(controllerName.text, controllerEmail.text)
                       .then((value) => showDialog<String>(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
-                                title: const Text('Criação de usuario'),
+                                title: (controllerName.text.isEmpty ||
+                                        controllerEmail.text.isEmpty)
+                                    ? const Text('Campos obrigatórios vazios')
+                                    : const Text('Usuário cadastrado!'),
                                 content: Text(alert),
                                 actions: <Widget>[
                                   TextButton(
                                     onPressed: () =>
-                                        Navigator.pop(context, 'Cancel'),
-                                    child: const Text('Cancel'),
+                                        Navigator.pop(context, 'Cancelar'),
+                                    child: const Text('Cancelar'),
                                   ),
                                 ],
                               )));
                   ;
                 },
-                child: const Text('Novo usuario'),
+                child: const Text('Novo usuário'),
               ),
             ),
             Expanded(
